@@ -28,7 +28,7 @@ public class Note {
         this.octave = (pitch / 12) - 1; // MIDI note 60 = middle C (C4)
     }
 
-    public static List<Note> createListFrom(Track track) {
+    public static List<Note> listFromTrack(Track track) {
         List<Note> notes = new ArrayList<>();
         int[] noteStartTicks = new int[128];  // For each possible MIDI note
         int[] noteVelocities = new int[128];  // Store velocity for each note

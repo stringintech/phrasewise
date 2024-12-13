@@ -40,7 +40,7 @@ public class LilyPondHelper {
      * @param outputPath Path where the LilyPond file should be saved
      * @throws IOException if there's an error writing the file
      */
-    public static void createColoredScore(List<Note> phrase, NoteName tonic, Path outputPath) throws IOException {
+    public static void createColoredScore(List<Note> phrase, int resolution, NoteName tonic, Path outputPath) throws IOException {
         StringBuilder lily = new StringBuilder();
 
         // Add version and required includes
@@ -50,7 +50,7 @@ public class LilyPondHelper {
         lily.append("\\score {\n");
         lily.append("  \\new Staff {\n");
         lily.append("    \\time 4/4\n");
-        lily.append("    \\key ").append("g").append(" \\major\n"); //TODO
+        lily.append("    \\key ").append("c").append(" \\major\n"); //TODO
         lily.append("    \\clef bass\n\n"); //TODO
 
         // Process each note in the phrase
@@ -68,7 +68,7 @@ public class LilyPondHelper {
 
             // Add the note with its duration
             lily.append("    ").append(lilyNote)
-                    .append(calculateLilyPondDuration(note.getDuration()))
+                    .append(calculateLilyPondDuration(note.getDuration(), resolution))
                     .append(" ");
         }
 
@@ -98,14 +98,17 @@ public class LilyPondHelper {
     /**
      * Converts a note duration in MIDI ticks to LilyPond duration notation.
      */
-    private static String calculateLilyPondDuration(long ticks) {
+    private static String calculateLilyPondDuration(long ticks, int resolution) { //TODO support ties, dotted notes, ... they have sth to do with bars and time signature and ...
+        if (resolution != 480) {
+            throw new IllegalArgumentException("resolution must be 480");
+        }
         // Assuming standard MIDI resolution of 480 ticks per quarter note TODO not true
         if (ticks >= 1920) return "1";      // whole note
         if (ticks >= 960) return "2";       // half note
         if (ticks >= 480) return "4";       // quarter note
         if (ticks >= 240) return "8";       // eighth note
         if (ticks >= 120) return "16";      // sixteenth note
-        return "32";                        // thirty-second note
+        return "32";
     }
 
     /**
@@ -132,7 +135,7 @@ public class LilyPondHelper {
      * Adjusts a note name for the correct octave in LilyPond notation.
      */
     private static String adjustOctave(String noteName, int octave) {
-        int lilyPondOctave = octave - 4; // LilyPond uses c' for middle C (C4)
+        int lilyPondOctave = octave - 3;
         if (lilyPondOctave > 0) {
             return noteName + "'".repeat(lilyPondOctave);
         } else if (lilyPondOctave < 0) {
