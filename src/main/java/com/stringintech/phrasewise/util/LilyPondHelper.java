@@ -1,7 +1,6 @@
 package com.stringintech.phrasewise.util;
 
 import com.stringintech.phrasewise.model.Note;
-import com.stringintech.phrasewise.model.NoteName;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
@@ -12,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 public class LilyPondHelper {
-    private static final String[] NOTE_NAMES = {"c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b"};
-
     // Chromatic scale degree colors
     // https://www.musanim.com/HarmonicColoring/
     private static final Map<Integer, String> DEGREE_COLORS = Map.ofEntries(
@@ -36,11 +33,12 @@ public class LilyPondHelper {
      * according to its scale degree relative to the tonic.
      *
      * @param phrase     List of notes in the musical phrase
-     * @param tonic      The tonic note (e.g., "C" for C major)
+     * @param resolution MIDI resolution (ticks per quarter note)
+     * @param tonicPitch The MIDI pitch number of the tonic note
      * @param outputPath Path where the LilyPond file should be saved
      * @throws IOException if there's an error writing the file
      */
-    public static void createColoredScore(List<Note> phrase, int resolution, NoteName tonic, Path outputPath) throws IOException {
+    public static void createColoredScore(List<Note> phrase, int resolution, int tonicPitch, Path outputPath) throws IOException {
         StringBuilder lily = new StringBuilder();
 
         // Add version and required includes
@@ -50,17 +48,14 @@ public class LilyPondHelper {
         lily.append("\\score {\n");
         lily.append("  \\new Staff {\n");
         lily.append("    \\time 4/4\n");
-        lily.append("    \\key ").append("c").append(" \\major\n"); //TODO
+        lily.append("    \\key ").append("d").append(" \\minor\n"); //TODO
         lily.append("    \\clef bass\n\n"); //TODO
 
         // Process each note in the phrase
         for (Note note : phrase) {
-            String lilyNote = toLilyPondNoteName(note.getNoteName());
-            int chromaticDegree = calculateChromaticDegree(note.getNoteName(), tonic); //TODO is the index necessary?
+            String lilyNote = LilypondNotationHelper.midiPitchToLilyPond(note.getPitch(), tonicPitch);
+            int chromaticDegree = calculateChromaticDegree(note.getPitch(), tonicPitch);
             String color = DEGREE_COLORS.get(chromaticDegree);
-
-            // Adjust the octave
-            lilyNote = adjustOctave(lilyNote, note.getOctave());
 
             // Add color override for this note
             String rgbValues = hexToRGBValues(color);
@@ -87,16 +82,12 @@ public class LilyPondHelper {
     /**
      * Calculates the chromatic scale degree of a note relative to the tonic.
      */
-    private static int calculateChromaticDegree(NoteName noteName, NoteName tonic) {
-        int tonicIndex = indexOf(NOTE_NAMES, toLilyPondNoteName(tonic));
-        int noteIndex = indexOf(NOTE_NAMES, toLilyPondNoteName(noteName));
-
-        // Calculate chromatic scale degree (1-based)
-        return ((noteIndex - tonicIndex + 12) % 12) + 1;
+    private static int calculateChromaticDegree(int notePitch, int tonicPitch) {
+        return ((notePitch - tonicPitch + 12) % 12) + 1; //TODO ok?
     }
 
     /**
-     * Converts a note duration in MIDI ticks to LilyPond duration notation.
+     * Calculates LilyPond duration notation from MIDI ticks.
      */
     private static String calculateLilyPondDuration(long ticks, int resolution) { //TODO support ties, dotted notes, ... they have sth to do with bars and time signature and ...
         if (resolution != 480) {
@@ -109,51 +100,6 @@ public class LilyPondHelper {
         if (ticks >= 240) return "8";       // eighth note
         if (ticks >= 120) return "16";      // sixteenth note
         return "32";
-    }
-
-    /**
-     * Converts a standard note name to LilyPond notation.
-     */
-    private static String toLilyPondNoteName(NoteName noteName) {
-        return switch (noteName) {
-            case C -> "c";
-            case C_SHARP -> "cis";
-            case D -> "d";
-            case D_SHARP -> "dis";
-            case E -> "e";
-            case F -> "f";
-            case F_SHARP -> "fis";
-            case G -> "g";
-            case G_SHARP -> "gis";
-            case A -> "a";
-            case A_SHARP -> "ais";
-            case B -> "b";
-        };
-    }
-
-    /**
-     * Adjusts a note name for the correct octave in LilyPond notation.
-     */
-    private static String adjustOctave(String noteName, int octave) {
-        int lilyPondOctave = octave - 3;
-        if (lilyPondOctave > 0) {
-            return noteName + "'".repeat(lilyPondOctave);
-        } else if (lilyPondOctave < 0) {
-            return noteName + ",".repeat(-lilyPondOctave);
-        }
-        return noteName;
-    }
-
-    /**
-     * Finds the index of a note name in the NOTE_NAMES array.
-     */
-    private static int indexOf(String[] array, String value) {
-        for (int i = 0; i < array.length; i++) {
-            if (array[i].equals(value)) {
-                return i;
-            }
-        }
-        throw new IllegalArgumentException("Invalid note name: " + value);
     }
 
     /**

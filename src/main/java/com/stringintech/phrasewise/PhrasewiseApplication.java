@@ -126,7 +126,7 @@ public class PhrasewiseApplication {
         try {
             var dir = Path.of("/Users/kowsar/Downloads");
             var lilyFile = dir.resolve("bach-phrase"); //TODO why middle man
-            LilyPondHelper.createColoredScore(notes, resolution, NoteName.D, lilyFile);
+            LilyPondHelper.createColoredScore(notes, resolution, 50, lilyFile); //TODO
             LilyPondHelper.compileToPDF(lilyFile, dir);
         } catch (Exception e) {
             System.err.println("Error generating score: " + e.getMessage());
