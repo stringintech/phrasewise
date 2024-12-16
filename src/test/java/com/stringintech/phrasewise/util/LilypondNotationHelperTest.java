@@ -1,6 +1,5 @@
-package com.stringintech.phrasewise;
+package com.stringintech.phrasewise.util;
 
-import com.stringintech.phrasewise.util.LilypondNotationHelper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
