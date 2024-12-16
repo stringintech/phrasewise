@@ -9,8 +9,6 @@ import java.util.List;
 
 public class Note {
     private final int pitch;        // MIDI note number (0-127)
-    private final NoteName noteName;  // Replaced String with enum
-    private final int octave;       // e.g. 4 for middle C
     private final long startTick;   // Start time in ticks
     private final long duration;    // Duration in ticks
     private final int velocity;     // Note velocity (0-127)
@@ -22,10 +20,6 @@ public class Note {
         this.duration = duration;
         this.velocity = velocity;
         this.channel = channel;
-
-        // Calculate note name and octave
-        this.noteName = NoteName.values()[(pitch % 12)];
-        this.octave = (pitch / 12) - 1; // MIDI note 60 = middle C (C4)
     }
 
     public static List<Note> listFromTrack(Track track) {
@@ -76,14 +70,6 @@ public class Note {
 
     public int getPitch() {
         return pitch;
-    }
-
-    public NoteName getNoteName() {
-        return noteName;
-    }
-
-    public int getOctave() {
-        return octave;
     }
 
     public long getStartTick() {

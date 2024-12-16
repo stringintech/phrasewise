@@ -27,11 +27,14 @@ public class Piece {
     private Instant importedAt;
 
     @Column(name = "resolution", nullable = false)
-    private int resolution;  // ticks per quarter note (PPQ)
+    private int resolution;
 
     @JdbcTypeCode(SqlTypes.JSON_ARRAY)
     @Column(name = "notes", nullable = false)
     private List<Note> notes;
+
+    public record NoteSequenceMatch(List<Note> sequence, long startTick) {
+    }
 
     public Piece() {
     }
@@ -47,81 +50,63 @@ public class Piece {
         this.setNotes(midiNotes);
     }
 
-    public record NoteSequenceMatch(List<Note> sequence, long startTick) {
-    }
-
     /**
-     * Finds a sequence of notes with specified note names after a given start tick.
+     * Finds a sequence of notes with specified spellings in a given key context.
      *
-     * @param searchNotes   the sequence of note names to search for
-     * @param startFromTick the tick position to start searching from (inclusive)
-     * @return A NoteSequenceMatch containing the matching notes and their start tick,
-     * or null if no match is found
+     * @param searchSpellings List of target spellings
+     * @param keyRoot         MIDI pitch number of the key's root note
+     * @param startFromTick   Starting tick position (inclusive)
+     * @return Matching sequence and start tick, or null if not found
      */
-    public NoteSequenceMatch findNoteSequence(List<NoteName> searchNotes, long startFromTick) {
+    public NoteSequenceMatch findNoteSequence(List<PitchSpelling.Spelling> searchSpellings, int keyRoot, long startFromTick) {
         List<Note> allNotes = this.getNotes();
         allNotes.sort(Comparator.comparingLong(Note::getStartTick));
 
-        // Find the first note that starts at or after startFromTick
         int startIndex = 0;
         while (startIndex < allNotes.size() && allNotes.get(startIndex).getStartTick() < startFromTick) {
             startIndex++;
         }
 
-        // Look for the sequence starting from startIndex
-        for (int i = startIndex; i <= allNotes.size() - searchNotes.size(); i++) {
+        for (int i = startIndex; i <= allNotes.size() - searchSpellings.size(); i++) {
             boolean matches = true;
-            for (int j = 0; j < searchNotes.size(); j++) {
-                NoteName expectedNote = searchNotes.get(j);
-                NoteName actualNote = allNotes.get(i + j).getNoteName();
+            for (int j = 0; j < searchSpellings.size(); j++) {
+                PitchSpelling.Spelling expectedSpelling = searchSpellings.get(j);
+                PitchSpelling.Spelling actualSpelling = PitchSpelling.inKey(allNotes.get(i + j).getPitch(), keyRoot).getSpelling();
 
-                if (!expectedNote.equals(actualNote)) {
+                if (!expectedSpelling.equals(actualSpelling)) {
                     matches = false;
                     break;
                 }
             }
             if (matches) {
-                List<Note> matchingNotes = allNotes.subList(i, i + searchNotes.size());
+                List<Note> matchingNotes = allNotes.subList(i, i + searchSpellings.size());
                 return new NoteSequenceMatch(matchingNotes, matchingNotes.get(0).getStartTick());
             }
         }
-
         return null;
     }
 
     /**
-     * Finds a sequence of notes with specified note names, starting from the beginning.
+     * Finds a musical phrase between two note sequences in a given key context.
      *
-     * @param searchNotes the sequence of note names to search for
-     * @return A NoteSequenceMatch containing the matching notes and their start tick,
-     * or null if no match is found
+     * @param startSpellings Starting sequence spellings
+     * @param endSpellings   Ending sequence spellings
+     * @param keyRoot        MIDI pitch number of the key's root note
+     * @return Notes between and including the sequences, or empty list if not found
      */
-    public NoteSequenceMatch findNoteSequence(List<NoteName> searchNotes) {
-        return findNoteSequence(searchNotes, 0);
-    }
-
-    /**
-     * Finds a musical phrase between two note sequences.
-     *
-     * @param startSequence the sequence of notes that starts the phrase
-     * @param endSequence   the sequence of notes that ends the phrase
-     * @return A list of all notes between and including the start and end sequences,
-     * or an empty list if either sequence is not found
-     */
-    public List<Note> findPhraseBetweenSequences(List<NoteName> startSequence, List<NoteName> endSequence) {
-        NoteSequenceMatch startMatch = findNoteSequence(startSequence);
+    public List<Note> findPhraseBetweenSequences(List<PitchSpelling.Spelling> startSpellings,
+                                                 List<PitchSpelling.Spelling> endSpellings,
+                                                 int keyRoot) {
+        NoteSequenceMatch startMatch = findNoteSequence(startSpellings, keyRoot, 0);
         if (startMatch == null) {
             return List.of();
         }
 
-        // Search for end sequence starting after the start sequence
-        long searchFromTick = startMatch.startTick() + 1;
-        NoteSequenceMatch endMatch = findNoteSequence(endSequence, searchFromTick);
+        NoteSequenceMatch endMatch = findNoteSequence(endSpellings, keyRoot, startMatch.startTick() + 1);
         if (endMatch == null) {
             return List.of();
         }
 
-        // Get all notes between start and end (inclusive)
         Note lastNote = endMatch.sequence().get(endMatch.sequence().size() - 1);
         long phraseEndTick = lastNote.getStartTick() + lastNote.getDuration();
         return notes.stream()
