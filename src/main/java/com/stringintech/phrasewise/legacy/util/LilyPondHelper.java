@@ -1,5 +1,7 @@
 package com.stringintech.phrasewise.legacy.util;
 
+import com.stringintech.phrasewise.core.Pitch;
+import com.stringintech.phrasewise.core.Spelling;
 import com.stringintech.phrasewise.midi.MidiNote;
 
 import java.io.BufferedReader;
@@ -27,7 +29,7 @@ public class LilyPondHelper {
             Map.entry(12, "#FF6600") // VII
     );
 
-    public static void createColoredScore(List<MidiNote> phrase, int resolution, int tonicPitch, Path outputPath) throws IOException {
+    public static void createColoredScore(List<MidiNote> phrase, int resolution, Spelling tonic, Path outputPath) throws IOException {
         StringBuilder lily = new StringBuilder();
 
         // Add version and required includes
@@ -42,8 +44,8 @@ public class LilyPondHelper {
 
         // Process each note in the phrase
         for (MidiNote note : phrase) {
-            String lilyNote = LilypondNotationHelper.midiPitchToLilyPond(note.pitch(), tonicPitch);
-            int chromaticDegree = calculateChromaticDegree(note.pitch(), tonicPitch);
+            String lilyNote = LilypondNotationHelper.midiPitchToLilyPond(note.pitch(), tonic);
+            int chromaticDegree = calculateChromaticDegree(note.pitch(), tonic);
             String color = DEGREE_COLORS.get(chromaticDegree);
 
             // Add color override for this note
@@ -68,8 +70,9 @@ public class LilyPondHelper {
         }
     }
 
-    private static int calculateChromaticDegree(int notePitch, int tonicPitch) {
-        return ((notePitch - tonicPitch + 12) % 12) + 1; //TODO ok?
+    private static int calculateChromaticDegree(int notePitch, Spelling tonic) { //FIXME the whole helper should be refactored
+        int tonicPitch = new Pitch(tonic, 0).getMidiPitch();
+        return ((notePitch - tonicPitch + 12) % 12) + 1;
     }
 
     private static String calculateLilyPondDuration(long ticks, int resolution) { //TODO support ties, dotted notes, ... they have sth to do with bars and time signature and ...

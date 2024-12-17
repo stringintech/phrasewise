@@ -7,10 +7,10 @@ import javax.sound.midi.Track;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MonophonicSequence {
+public class MonophonicMidiSequence {
     private final List<MidiNote> notes;
 
-    public MonophonicSequence(Track track) {
+    public MonophonicMidiSequence(Track track) {
         notes = new ArrayList<>();
         int currentNotePitch = -1;
         long currentNoteStart = -1;

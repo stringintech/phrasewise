@@ -1,11 +1,11 @@
 package com.stringintech.phrasewise;
 
-import com.stringintech.phrasewise.core.PitchSpelling;
+import com.stringintech.phrasewise.core.NoteName;
 import com.stringintech.phrasewise.core.Spelling;
-import com.stringintech.phrasewise.midi.MidiNote;
 import com.stringintech.phrasewise.legacy.model.MidiPiece;
 import com.stringintech.phrasewise.legacy.util.LilyPondHelper;
 import com.stringintech.phrasewise.legacy.util.NoteSymbol;
+import com.stringintech.phrasewise.midi.MidiNote;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,16 +34,15 @@ public class PhrasewiseApplication {
             String command = args[0];
             String midiPath = args[1];
             String keySymbol = args[2];
-            int keyRoot = NoteSymbol.getKeyRoot(keySymbol);
+            Spelling tonic = NoteSymbol.toSpelling(keySymbol);
 
             Sequence sequence = MidiSystem.getSequence(Path.of(midiPath).toFile());
             MidiPiece piece = new MidiPiece(sequence);
 
             try {
                 switch (command) {
-                    case "find-sequence" ->
-                            handleFindSequence(piece, keyRoot, Arrays.copyOfRange(args, 3, args.length));
-                    case "find-phrase" -> handleFindPhrase(piece, keyRoot, Arrays.copyOfRange(args, 3, args.length));
+                    case "find-sequence" -> handleFindSequence(piece, tonic, Arrays.copyOfRange(args, 3, args.length));
+                    case "find-phrase" -> handleFindPhrase(piece, tonic, Arrays.copyOfRange(args, 3, args.length));
                     default -> {
                         System.err.println("Unknown command: " + command);
                         printUsage();
@@ -57,7 +56,7 @@ public class PhrasewiseApplication {
         };
     }
 
-    private void handleFindSequence(MidiPiece piece, int keyRoot, String[] noteArgs) {
+    private void handleFindSequence(MidiPiece piece, Spelling tonic, String[] noteArgs) {
         if (noteArgs.length < 1) {
             System.err.println("Error: No notes provided for sequence search");
             printUsage();
@@ -65,17 +64,16 @@ public class PhrasewiseApplication {
         }
 
         List<Spelling> searchSpellings = NoteSymbol.spellingsFromSymbols(Arrays.asList(noteArgs));
-        MidiPiece.NoteSequenceMatch match = piece.findNoteSequence(searchSpellings, keyRoot, 0);
+        MidiPiece.NoteSequenceMatch match = piece.findNoteSequence(searchSpellings, tonic, 0);
 
         if (match == null) {
             System.out.println("No matching sequence found");
         } else {
-            printFoundNotes("Found sequence", match.sequence());
             generateScore(match.sequence(), piece.getResolution());
         }
     }
 
-    private void handleFindPhrase(MidiPiece piece, int keyRoot, String[] noteArgs) {
+    private void handleFindPhrase(MidiPiece piece, Spelling tonic, String[] noteArgs) {
         if (noteArgs.length < 2) {
             System.err.println("Error: Both start and end sequences must be provided");
             printUsage();
@@ -101,21 +99,12 @@ public class PhrasewiseApplication {
         List<Spelling> startSpellings = NoteSymbol.spellingsFromSymbols(startSeqArgs);
         List<Spelling> endSpellings = NoteSymbol.spellingsFromSymbols(endSeqArgs);
 
-        List<MidiNote> phrase = piece.findPhraseBetweenSequences(startSpellings, endSpellings, keyRoot);
+        List<MidiNote> phrase = piece.findPhraseBetweenSequences(startSpellings, endSpellings, tonic);
 
         if (phrase.isEmpty()) {
             System.out.println("No matching phrase found");
         } else {
-            printFoundNotes("Found phrase", phrase);
             generateScore(phrase, piece.getResolution());
-        }
-    }
-
-    private void printFoundNotes(String header, List<MidiNote> notes) {
-        System.out.println(header + ":");
-        for (MidiNote note : notes) {
-            var spelling = new PitchSpelling(note.pitch(), note.pitch()).getSpelling();
-            System.out.printf("Note: %s%s at tick %d (duration: %d)%n", spelling.name(), spelling.accidental(), note.startTick(), note.duration());
         }
     }
 
@@ -123,7 +112,7 @@ public class PhrasewiseApplication {
         try {
             var dir = Path.of("/Users/kowsar/Downloads"); //TODO why middle man
             var lilyFile = dir.resolve("bach-phrase"); //TODO
-            LilyPondHelper.createColoredScore(notes, resolution, 50, lilyFile); //TODO
+            LilyPondHelper.createColoredScore(notes, resolution, Spelling.natural(NoteName.D), lilyFile); //TODO
             LilyPondHelper.compileToPDF(lilyFile, dir);
         } catch (Exception e) {
             System.err.println("Error generating score: " + e.getMessage());

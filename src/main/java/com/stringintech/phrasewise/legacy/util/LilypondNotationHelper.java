@@ -1,14 +1,16 @@
 package com.stringintech.phrasewise.legacy.util;
 
 
-import com.stringintech.phrasewise.core.PitchSpelling;
+import com.stringintech.phrasewise.core.Key;
+import com.stringintech.phrasewise.core.Pitch;
 import com.stringintech.phrasewise.core.Spelling;
 
 public class LilypondNotationHelper {
-    public static String midiPitchToLilyPond(int midiPitch, int rootPitch) {
-        PitchSpelling pitchSpelling = new PitchSpelling(midiPitch, rootPitch);
-        return spellingToLilyPond(pitchSpelling.getSpelling()) +
-                getOctaveMarks(pitchSpelling.getOctave());
+    public static String midiPitchToLilyPond(int midiPitch, Spelling tonic) {
+        Key key = new Key(tonic);
+        Pitch pitch = key.newPitch(midiPitch);
+        return spellingToLilyPond(pitch.getSpelling()) +
+                getOctaveMarks(pitch.getOctave());
     }
 
     private static String spellingToLilyPond(Spelling spelling) {

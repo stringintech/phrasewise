@@ -1,9 +1,10 @@
 package com.stringintech.phrasewise.legacy.model;
 
-import com.stringintech.phrasewise.core.PitchSpelling;
+import com.stringintech.phrasewise.core.Key;
+import com.stringintech.phrasewise.core.Pitch;
 import com.stringintech.phrasewise.core.Spelling;
 import com.stringintech.phrasewise.midi.MidiNote;
-import com.stringintech.phrasewise.midi.MonophonicSequence;
+import com.stringintech.phrasewise.midi.MonophonicMidiSequence;
 
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
@@ -36,12 +37,12 @@ public class MidiPiece {
             throw new IllegalArgumentException("MIDI file must have at least 2 tracks");
         }
         Track mainTrack = tracks[1];
-        List<MidiNote> midiNotes = new MonophonicSequence(mainTrack).getNotes();
+        List<MidiNote> midiNotes = new MonophonicMidiSequence(mainTrack).getNotes();
         this.setResolution(sequence.getResolution());
         this.setNotes(midiNotes);
     }
 
-    public NoteSequenceMatch findNoteSequence(List<Spelling> searchSpellings, int keyRoot, long startFromTick) {
+    public NoteSequenceMatch findNoteSequence(List<Spelling> searchSpellings, Spelling tonic, long startFromTick) {
         List<MidiNote> allNotes = this.getNotes();
         allNotes.sort(Comparator.comparingLong(MidiNote::startTick));
 
@@ -54,7 +55,8 @@ public class MidiPiece {
             boolean matches = true;
             for (int j = 0; j < searchSpellings.size(); j++) {
                 Spelling expectedSpelling = searchSpellings.get(j);
-                Spelling actualSpelling = new PitchSpelling(allNotes.get(i + j).pitch(), keyRoot).getSpelling();
+                Key key = new Key(tonic);
+                Spelling actualSpelling = key.newPitch(allNotes.get(i + j).pitch()).getSpelling();
 
                 if (!expectedSpelling.equals(actualSpelling)) {
                     matches = false;
@@ -71,13 +73,13 @@ public class MidiPiece {
 
     public List<MidiNote> findPhraseBetweenSequences(List<Spelling> startSpellings,
                                                      List<Spelling> endSpellings,
-                                                     int keyRoot) {
-        NoteSequenceMatch startMatch = findNoteSequence(startSpellings, keyRoot, 0);
+                                                     Spelling tonic) {
+        NoteSequenceMatch startMatch = findNoteSequence(startSpellings, tonic, 0);
         if (startMatch == null) {
             return List.of();
         }
 
-        NoteSequenceMatch endMatch = findNoteSequence(endSpellings, keyRoot, startMatch.startTick() + 1);
+        NoteSequenceMatch endMatch = findNoteSequence(endSpellings, tonic, startMatch.startTick() + 1);
         if (endMatch == null) {
             return List.of();
         }
