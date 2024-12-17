@@ -1,30 +1,31 @@
 package com.stringintech.phrasewise.legacy.util;
 
-import com.stringintech.phrasewise.legacy.model.PitchSpelling;
+import com.stringintech.phrasewise.core.NoteName;
+import com.stringintech.phrasewise.core.Spelling;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class NoteSymbol {
-    private static final Map<String, PitchSpelling.Spelling> SYMBOL_TO_SPELLING = Map.ofEntries(
-            Map.entry("C", PitchSpelling.Spelling.natural(PitchSpelling.NoteName.C)),
-            Map.entry("C#", PitchSpelling.Spelling.sharp(PitchSpelling.NoteName.C)),
-            Map.entry("Db", PitchSpelling.Spelling.flat(PitchSpelling.NoteName.D)),
-            Map.entry("D", PitchSpelling.Spelling.natural(PitchSpelling.NoteName.D)),
-            Map.entry("D#", PitchSpelling.Spelling.sharp(PitchSpelling.NoteName.D)),
-            Map.entry("Eb", PitchSpelling.Spelling.flat(PitchSpelling.NoteName.E)),
-            Map.entry("E", PitchSpelling.Spelling.natural(PitchSpelling.NoteName.E)),
-            Map.entry("F", PitchSpelling.Spelling.natural(PitchSpelling.NoteName.F)),
-            Map.entry("F#", PitchSpelling.Spelling.sharp(PitchSpelling.NoteName.F)),
-            Map.entry("Gb", PitchSpelling.Spelling.flat(PitchSpelling.NoteName.G)),
-            Map.entry("G", PitchSpelling.Spelling.natural(PitchSpelling.NoteName.G)),
-            Map.entry("G#", PitchSpelling.Spelling.sharp(PitchSpelling.NoteName.G)),
-            Map.entry("Ab", PitchSpelling.Spelling.flat(PitchSpelling.NoteName.A)),
-            Map.entry("A", PitchSpelling.Spelling.natural(PitchSpelling.NoteName.A)),
-            Map.entry("A#", PitchSpelling.Spelling.sharp(PitchSpelling.NoteName.A)),
-            Map.entry("Bb", PitchSpelling.Spelling.flat(PitchSpelling.NoteName.B)),
-            Map.entry("B", PitchSpelling.Spelling.natural(PitchSpelling.NoteName.B))
+    private static final Map<String, Spelling> SYMBOL_TO_SPELLING = Map.ofEntries(
+            Map.entry("C", Spelling.natural(NoteName.C)),
+            Map.entry("C#", Spelling.sharp(NoteName.C)),
+            Map.entry("Db", Spelling.flat(NoteName.D)),
+            Map.entry("D", Spelling.natural(NoteName.D)),
+            Map.entry("D#", Spelling.sharp(NoteName.D)),
+            Map.entry("Eb", Spelling.flat(NoteName.E)),
+            Map.entry("E", Spelling.natural(NoteName.E)),
+            Map.entry("F", Spelling.natural(NoteName.F)),
+            Map.entry("F#", Spelling.sharp(NoteName.F)),
+            Map.entry("Gb", Spelling.flat(NoteName.G)),
+            Map.entry("G", Spelling.natural(NoteName.G)),
+            Map.entry("G#", Spelling.sharp(NoteName.G)),
+            Map.entry("Ab", Spelling.flat(NoteName.A)),
+            Map.entry("A", Spelling.natural(NoteName.A)),
+            Map.entry("A#", Spelling.sharp(NoteName.A)),
+            Map.entry("Bb", Spelling.flat(NoteName.B)),
+            Map.entry("B", Spelling.natural(NoteName.B))
     );
 
     private static final Map<String, Integer> KEY_ROOTS = Map.ofEntries(
@@ -37,13 +38,13 @@ public class NoteSymbol {
             Map.entry("B", 71)
     );
 
-    public static List<PitchSpelling.Spelling> spellingsFromSymbols(List<String> symbols) {
+    public static List<Spelling> spellingsFromSymbols(List<String> symbols) {
         return symbols.stream()
                 .map(NoteSymbol::toSpelling)
                 .collect(Collectors.toList());
     }
 
-    public static PitchSpelling.Spelling toSpelling(String symbol) {
+    public static Spelling toSpelling(String symbol) {
         if (!SYMBOL_TO_SPELLING.containsKey(symbol)) {
             throw new IllegalArgumentException("Invalid note symbol: " + symbol);
         }

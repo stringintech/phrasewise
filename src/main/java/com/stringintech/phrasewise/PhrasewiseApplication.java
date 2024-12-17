@@ -1,8 +1,9 @@
 package com.stringintech.phrasewise;
 
+import com.stringintech.phrasewise.core.PitchSpelling;
+import com.stringintech.phrasewise.core.Spelling;
 import com.stringintech.phrasewise.midi.MidiNote;
 import com.stringintech.phrasewise.legacy.model.MidiPiece;
-import com.stringintech.phrasewise.legacy.model.PitchSpelling;
 import com.stringintech.phrasewise.legacy.util.LilyPondHelper;
 import com.stringintech.phrasewise.legacy.util.NoteSymbol;
 import org.springframework.boot.CommandLineRunner;
@@ -63,7 +64,7 @@ public class PhrasewiseApplication {
             return;
         }
 
-        List<PitchSpelling.Spelling> searchSpellings = NoteSymbol.spellingsFromSymbols(Arrays.asList(noteArgs));
+        List<Spelling> searchSpellings = NoteSymbol.spellingsFromSymbols(Arrays.asList(noteArgs));
         MidiPiece.NoteSequenceMatch match = piece.findNoteSequence(searchSpellings, keyRoot, 0);
 
         if (match == null) {
@@ -97,8 +98,8 @@ public class PhrasewiseApplication {
             return;
         }
 
-        List<PitchSpelling.Spelling> startSpellings = NoteSymbol.spellingsFromSymbols(startSeqArgs);
-        List<PitchSpelling.Spelling> endSpellings = NoteSymbol.spellingsFromSymbols(endSeqArgs);
+        List<Spelling> startSpellings = NoteSymbol.spellingsFromSymbols(startSeqArgs);
+        List<Spelling> endSpellings = NoteSymbol.spellingsFromSymbols(endSeqArgs);
 
         List<MidiNote> phrase = piece.findPhraseBetweenSequences(startSpellings, endSpellings, keyRoot);
 
@@ -113,8 +114,8 @@ public class PhrasewiseApplication {
     private void printFoundNotes(String header, List<MidiNote> notes) {
         System.out.println(header + ":");
         for (MidiNote note : notes) {
-            var spelling = PitchSpelling.inKey(note.pitch(), note.pitch()).getSpelling();
-            System.out.printf("Note: %s%s at tick %d (duration: %d)%n", spelling.note(), spelling.accidental(), note.startTick(), note.duration());
+            var spelling = new PitchSpelling(note.pitch(), note.pitch()).getSpelling();
+            System.out.printf("Note: %s%s at tick %d (duration: %d)%n", spelling.name(), spelling.accidental(), note.startTick(), note.duration());
         }
     }
 

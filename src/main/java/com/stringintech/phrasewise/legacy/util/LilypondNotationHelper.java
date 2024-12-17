@@ -1,17 +1,18 @@
 package com.stringintech.phrasewise.legacy.util;
 
 
-import com.stringintech.phrasewise.legacy.model.PitchSpelling;
+import com.stringintech.phrasewise.core.PitchSpelling;
+import com.stringintech.phrasewise.core.Spelling;
 
 public class LilypondNotationHelper {
     public static String midiPitchToLilyPond(int midiPitch, int rootPitch) {
-        PitchSpelling pitchSpelling = PitchSpelling.inKey(midiPitch, rootPitch);
+        PitchSpelling pitchSpelling = new PitchSpelling(midiPitch, rootPitch);
         return spellingToLilyPond(pitchSpelling.getSpelling()) +
                 getOctaveMarks(pitchSpelling.getOctave());
     }
 
-    private static String spellingToLilyPond(PitchSpelling.Spelling spelling) {
-        String base = spelling.note().toString().toLowerCase();
+    private static String spellingToLilyPond(Spelling spelling) {
+        String base = spelling.name().toString().toLowerCase();
         return base + switch (spelling.accidental()) {
             case SHARP -> "is";
             case FLAT -> "es";

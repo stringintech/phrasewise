@@ -1,5 +1,7 @@
 package com.stringintech.phrasewise.legacy.model;
 
+import com.stringintech.phrasewise.core.PitchSpelling;
+import com.stringintech.phrasewise.core.Spelling;
 import com.stringintech.phrasewise.midi.MidiNote;
 import com.stringintech.phrasewise.midi.MonophonicSequence;
 
@@ -39,7 +41,7 @@ public class MidiPiece {
         this.setNotes(midiNotes);
     }
 
-    public NoteSequenceMatch findNoteSequence(List<PitchSpelling.Spelling> searchSpellings, int keyRoot, long startFromTick) {
+    public NoteSequenceMatch findNoteSequence(List<Spelling> searchSpellings, int keyRoot, long startFromTick) {
         List<MidiNote> allNotes = this.getNotes();
         allNotes.sort(Comparator.comparingLong(MidiNote::startTick));
 
@@ -51,8 +53,8 @@ public class MidiPiece {
         for (int i = startIndex; i <= allNotes.size() - searchSpellings.size(); i++) {
             boolean matches = true;
             for (int j = 0; j < searchSpellings.size(); j++) {
-                PitchSpelling.Spelling expectedSpelling = searchSpellings.get(j);
-                PitchSpelling.Spelling actualSpelling = PitchSpelling.inKey(allNotes.get(i + j).pitch(), keyRoot).getSpelling();
+                Spelling expectedSpelling = searchSpellings.get(j);
+                Spelling actualSpelling = new PitchSpelling(allNotes.get(i + j).pitch(), keyRoot).getSpelling();
 
                 if (!expectedSpelling.equals(actualSpelling)) {
                     matches = false;
@@ -67,8 +69,8 @@ public class MidiPiece {
         return null;
     }
 
-    public List<MidiNote> findPhraseBetweenSequences(List<PitchSpelling.Spelling> startSpellings,
-                                                     List<PitchSpelling.Spelling> endSpellings,
+    public List<MidiNote> findPhraseBetweenSequences(List<Spelling> startSpellings,
+                                                     List<Spelling> endSpellings,
                                                      int keyRoot) {
         NoteSequenceMatch startMatch = findNoteSequence(startSpellings, keyRoot, 0);
         if (startMatch == null) {
