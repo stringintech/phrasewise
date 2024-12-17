@@ -1,6 +1,6 @@
 package com.stringintech.phrasewise.legacy.util;
 
-import com.stringintech.phrasewise.legacy.model.MidiNote;
+import com.stringintech.phrasewise.midi.MidiNote;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;

@@ -1,5 +1,8 @@
 package com.stringintech.phrasewise.legacy.model;
 
+import com.stringintech.phrasewise.midi.MidiNote;
+import com.stringintech.phrasewise.midi.MonophonicSequence;
+
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import java.time.Instant;
@@ -31,7 +34,7 @@ public class MidiPiece {
             throw new IllegalArgumentException("MIDI file must have at least 2 tracks");
         }
         Track mainTrack = tracks[1];
-        List<MidiNote> midiNotes = MidiNote.listFromTrack(mainTrack);
+        List<MidiNote> midiNotes = new MonophonicSequence(mainTrack).getNotes();
         this.setResolution(sequence.getResolution());
         this.setNotes(midiNotes);
     }

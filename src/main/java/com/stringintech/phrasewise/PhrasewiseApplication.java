@@ -1,6 +1,6 @@
 package com.stringintech.phrasewise;
 
-import com.stringintech.phrasewise.legacy.model.MidiNote;
+import com.stringintech.phrasewise.midi.MidiNote;
 import com.stringintech.phrasewise.legacy.model.MidiPiece;
 import com.stringintech.phrasewise.legacy.model.PitchSpelling;
 import com.stringintech.phrasewise.legacy.util.LilyPondHelper;
