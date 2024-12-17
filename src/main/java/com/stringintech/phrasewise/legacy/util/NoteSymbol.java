@@ -1,14 +1,11 @@
-package com.stringintech.phrasewise.util;
+package com.stringintech.phrasewise.legacy.util;
 
-import com.stringintech.phrasewise.model.PitchSpelling;
+import com.stringintech.phrasewise.legacy.model.PitchSpelling;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Converts between user-friendly note symbols and internal pitch spellings.
- */
 public class NoteSymbol {
     private static final Map<String, PitchSpelling.Spelling> SYMBOL_TO_SPELLING = Map.ofEntries(
             Map.entry("C", PitchSpelling.Spelling.natural(PitchSpelling.NoteName.C)),

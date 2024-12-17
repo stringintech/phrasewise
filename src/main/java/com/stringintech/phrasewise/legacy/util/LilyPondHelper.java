@@ -1,6 +1,6 @@
-package com.stringintech.phrasewise.util;
+package com.stringintech.phrasewise.legacy.util;
 
-import com.stringintech.phrasewise.model.Note;
+import com.stringintech.phrasewise.legacy.model.MidiNote;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 public class LilyPondHelper {
-    // Chromatic scale degree colors
     // https://www.musanim.com/HarmonicColoring/
     private static final Map<Integer, String> DEGREE_COLORS = Map.ofEntries(
             Map.entry(1, "#0000FF"), // I
@@ -28,17 +27,7 @@ public class LilyPondHelper {
             Map.entry(12, "#FF6600") // VII
     );
 
-    /**
-     * Creates a colored score from a musical phrase, where each note is colored
-     * according to its scale degree relative to the tonic.
-     *
-     * @param phrase     List of notes in the musical phrase
-     * @param resolution MIDI resolution (ticks per quarter note)
-     * @param tonicPitch The MIDI pitch number of the tonic note
-     * @param outputPath Path where the LilyPond file should be saved
-     * @throws IOException if there's an error writing the file
-     */
-    public static void createColoredScore(List<Note> phrase, int resolution, int tonicPitch, Path outputPath) throws IOException {
+    public static void createColoredScore(List<MidiNote> phrase, int resolution, int tonicPitch, Path outputPath) throws IOException {
         StringBuilder lily = new StringBuilder();
 
         // Add version and required includes
@@ -52,9 +41,9 @@ public class LilyPondHelper {
         lily.append("    \\clef bass\n\n"); //TODO
 
         // Process each note in the phrase
-        for (Note note : phrase) {
-            String lilyNote = LilypondNotationHelper.midiPitchToLilyPond(note.getPitch(), tonicPitch);
-            int chromaticDegree = calculateChromaticDegree(note.getPitch(), tonicPitch);
+        for (MidiNote note : phrase) {
+            String lilyNote = LilypondNotationHelper.midiPitchToLilyPond(note.pitch(), tonicPitch);
+            int chromaticDegree = calculateChromaticDegree(note.pitch(), tonicPitch);
             String color = DEGREE_COLORS.get(chromaticDegree);
 
             // Add color override for this note
@@ -63,7 +52,7 @@ public class LilyPondHelper {
 
             // Add the note with its duration
             lily.append("    ").append(lilyNote)
-                    .append(calculateLilyPondDuration(note.getDuration(), resolution))
+                    .append(calculateLilyPondDuration(note.duration(), resolution))
                     .append(" ");
         }
 
@@ -79,16 +68,10 @@ public class LilyPondHelper {
         }
     }
 
-    /**
-     * Calculates the chromatic scale degree of a note relative to the tonic.
-     */
     private static int calculateChromaticDegree(int notePitch, int tonicPitch) {
         return ((notePitch - tonicPitch + 12) % 12) + 1; //TODO ok?
     }
 
-    /**
-     * Calculates LilyPond duration notation from MIDI ticks.
-     */
     private static String calculateLilyPondDuration(long ticks, int resolution) { //TODO support ties, dotted notes, ... they have sth to do with bars and time signature and ...
         if (resolution != 480) {
             throw new IllegalArgumentException("resolution must be 480");
@@ -102,9 +85,6 @@ public class LilyPondHelper {
         return "32";
     }
 
-    /**
-     * Converts a hex color string to RGB values suitable for LilyPond.
-     */
     private static String hexToRGBValues(String hex) {
         String hexColor = hex.replace("#", "");
         float r = Integer.parseInt(hexColor.substring(0, 2), 16) / 255.0f;
@@ -113,9 +93,7 @@ public class LilyPondHelper {
         return String.format("%.2f %.2f %.2f", r, g, b);
     }
 
-    /**
-     * Compiles a LilyPond file to PDF using the lilypond command-line tool.
-     */
+    //TODO modify to only create PDF output
     public static void compileToPDF(Path lilypondFile, Path outputDir) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(
                 "lilypond",

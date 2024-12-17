@@ -1,13 +1,10 @@
-package com.stringintech.phrasewise.util;
+package com.stringintech.phrasewise.legacy.util;
 
 
-import com.stringintech.phrasewise.model.PitchSpelling;
+import com.stringintech.phrasewise.legacy.model.PitchSpelling;
 
-/**
- * Converts pitch spellings to LilyPond notation format.
- */
 public class LilypondNotationHelper {
-    static String midiPitchToLilyPond(int midiPitch, int rootPitch) {
+    public static String midiPitchToLilyPond(int midiPitch, int rootPitch) {
         PitchSpelling pitchSpelling = PitchSpelling.inKey(midiPitch, rootPitch);
         return spellingToLilyPond(pitchSpelling.getSpelling()) +
                 getOctaveMarks(pitchSpelling.getOctave());

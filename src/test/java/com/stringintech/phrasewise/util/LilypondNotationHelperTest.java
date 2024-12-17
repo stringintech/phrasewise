@@ -1,5 +1,6 @@
 package com.stringintech.phrasewise.util;
 
+import com.stringintech.phrasewise.legacy.util.LilypondNotationHelper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class LilypondNotationHelperTest {
 
-    // Define MIDI pitch constants for commonly used notes
     private static final int MIDI_C4 = 60;  // Middle C
     private static final int MIDI_AS4 = 70; // A#4/Bb4 - enharmonic note that varies by key signature
     private static final int MIDI_B4 = 71;  // B4

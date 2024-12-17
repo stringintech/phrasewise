@@ -1,8 +1,5 @@
-package com.stringintech.phrasewise.model;
+package com.stringintech.phrasewise.legacy.model;
 
-/**
- * Represents musical pitch spelling with key signature context.
- */
 public class PitchSpelling {
     private final int midiPitch;
     private final int keyRoot;
