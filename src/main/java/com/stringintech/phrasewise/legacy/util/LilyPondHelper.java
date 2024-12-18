@@ -1,5 +1,6 @@
 package com.stringintech.phrasewise.legacy.util;
 
+import com.stringintech.phrasewise.core.Key;
 import com.stringintech.phrasewise.core.Pitch;
 import com.stringintech.phrasewise.core.Spelling;
 import com.stringintech.phrasewise.midi.MidiNote;
@@ -29,7 +30,7 @@ public class LilyPondHelper {
             Map.entry(12, "#FF6600") // VII
     );
 
-    public static void createColoredScore(List<MidiNote> phrase, int resolution, Spelling tonic, Path outputPath) throws IOException {
+    public static void createColoredScore(List<MidiNote> phrase, int resolution, Key key, Path outputPath) throws IOException {
         StringBuilder lily = new StringBuilder();
 
         // Add version and required includes
@@ -44,8 +45,8 @@ public class LilyPondHelper {
 
         // Process each note in the phrase
         for (MidiNote note : phrase) {
-            String lilyNote = LilypondNotationHelper.midiPitchToLilyPond(note.pitch(), tonic);
-            int chromaticDegree = calculateChromaticDegree(note.pitch(), tonic);
+            String lilyNote = LilypondNotationHelper.midiPitchToLilyPond(note.pitch(), key);
+            int chromaticDegree = calculateChromaticDegree(note.pitch(), key.getTonic());
             String color = DEGREE_COLORS.get(chromaticDegree);
 
             // Add color override for this note

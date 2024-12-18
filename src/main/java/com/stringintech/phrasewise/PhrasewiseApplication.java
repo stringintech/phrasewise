@@ -1,6 +1,6 @@
 package com.stringintech.phrasewise;
 
-import com.stringintech.phrasewise.core.NoteName;
+import com.stringintech.phrasewise.core.Key;
 import com.stringintech.phrasewise.core.Spelling;
 import com.stringintech.phrasewise.legacy.model.MidiPiece;
 import com.stringintech.phrasewise.legacy.util.LilyPondHelper;
@@ -35,14 +35,15 @@ public class PhrasewiseApplication {
             String midiPath = args[1];
             String keySymbol = args[2];
             Spelling tonic = NoteSymbol.toSpelling(keySymbol);
+            Key key = new Key(tonic, Key.Mode.MINOR);
 
             Sequence sequence = MidiSystem.getSequence(Path.of(midiPath).toFile());
             MidiPiece piece = new MidiPiece(sequence);
 
             try {
                 switch (command) {
-                    case "find-sequence" -> handleFindSequence(piece, tonic, Arrays.copyOfRange(args, 3, args.length));
-                    case "find-phrase" -> handleFindPhrase(piece, tonic, Arrays.copyOfRange(args, 3, args.length));
+                    case "find-sequence" -> handleFindSequence(piece, key, Arrays.copyOfRange(args, 3, args.length));
+                    case "find-phrase" -> handleFindPhrase(piece, key, Arrays.copyOfRange(args, 3, args.length));
                     default -> {
                         System.err.println("Unknown command: " + command);
                         printUsage();
@@ -56,7 +57,7 @@ public class PhrasewiseApplication {
         };
     }
 
-    private void handleFindSequence(MidiPiece piece, Spelling tonic, String[] noteArgs) {
+    private void handleFindSequence(MidiPiece piece, Key key, String[] noteArgs) {
         if (noteArgs.length < 1) {
             System.err.println("Error: No notes provided for sequence search");
             printUsage();
@@ -64,16 +65,16 @@ public class PhrasewiseApplication {
         }
 
         List<Spelling> searchSpellings = NoteSymbol.spellingsFromSymbols(Arrays.asList(noteArgs));
-        MidiPiece.NoteSequenceMatch match = piece.findNoteSequence(searchSpellings, tonic, 0);
+        MidiPiece.NoteSequenceMatch match = piece.findNoteSequence(searchSpellings, key, 0);
 
         if (match == null) {
             System.out.println("No matching sequence found");
         } else {
-            generateScore(match.sequence(), piece.getResolution());
+            generateScore(match.sequence(), piece.getResolution(), key);
         }
     }
 
-    private void handleFindPhrase(MidiPiece piece, Spelling tonic, String[] noteArgs) {
+    private void handleFindPhrase(MidiPiece piece, Key key, String[] noteArgs) {
         if (noteArgs.length < 2) {
             System.err.println("Error: Both start and end sequences must be provided");
             printUsage();
@@ -99,20 +100,20 @@ public class PhrasewiseApplication {
         List<Spelling> startSpellings = NoteSymbol.spellingsFromSymbols(startSeqArgs);
         List<Spelling> endSpellings = NoteSymbol.spellingsFromSymbols(endSeqArgs);
 
-        List<MidiNote> phrase = piece.findPhraseBetweenSequences(startSpellings, endSpellings, tonic);
+        List<MidiNote> phrase = piece.findPhraseBetweenSequences(startSpellings, endSpellings, key);
 
         if (phrase.isEmpty()) {
             System.out.println("No matching phrase found");
         } else {
-            generateScore(phrase, piece.getResolution());
+            generateScore(phrase, piece.getResolution(), key);
         }
     }
 
-    private void generateScore(List<MidiNote> notes, int resolution) {
+    private void generateScore(List<MidiNote> notes, int resolution, Key key) {
         try {
             var dir = Path.of("/Users/kowsar/Downloads"); //TODO why middle man
             var lilyFile = dir.resolve("bach-phrase"); //TODO
-            LilyPondHelper.createColoredScore(notes, resolution, Spelling.natural(NoteName.D), lilyFile); //TODO
+            LilyPondHelper.createColoredScore(notes, resolution, key, lilyFile); //TODO
             LilyPondHelper.compileToPDF(lilyFile, dir);
         } catch (Exception e) {
             System.err.println("Error generating score: " + e.getMessage());

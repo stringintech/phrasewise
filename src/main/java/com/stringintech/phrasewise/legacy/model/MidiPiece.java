@@ -42,7 +42,7 @@ public class MidiPiece {
         this.setNotes(midiNotes);
     }
 
-    public NoteSequenceMatch findNoteSequence(List<Spelling> searchSpellings, Spelling tonic, long startFromTick) {
+    public NoteSequenceMatch findNoteSequence(List<Spelling> searchSpellings, Key key, long startFromTick) {
         List<MidiNote> allNotes = this.getNotes();
         allNotes.sort(Comparator.comparingLong(MidiNote::startTick));
 
@@ -55,7 +55,6 @@ public class MidiPiece {
             boolean matches = true;
             for (int j = 0; j < searchSpellings.size(); j++) {
                 Spelling expectedSpelling = searchSpellings.get(j);
-                Key key = new Key(tonic);
                 Spelling actualSpelling = key.newPitch(allNotes.get(i + j).pitch()).getSpelling();
 
                 if (!expectedSpelling.equals(actualSpelling)) {
@@ -73,13 +72,13 @@ public class MidiPiece {
 
     public List<MidiNote> findPhraseBetweenSequences(List<Spelling> startSpellings,
                                                      List<Spelling> endSpellings,
-                                                     Spelling tonic) {
-        NoteSequenceMatch startMatch = findNoteSequence(startSpellings, tonic, 0);
+                                                     Key key) {
+        NoteSequenceMatch startMatch = findNoteSequence(startSpellings, key, 0);
         if (startMatch == null) {
             return List.of();
         }
 
-        NoteSequenceMatch endMatch = findNoteSequence(endSpellings, tonic, startMatch.startTick() + 1);
+        NoteSequenceMatch endMatch = findNoteSequence(endSpellings, key, startMatch.startTick() + 1);
         if (endMatch == null) {
             return List.of();
         }

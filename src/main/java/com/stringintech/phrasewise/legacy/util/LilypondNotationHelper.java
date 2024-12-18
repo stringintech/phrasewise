@@ -6,8 +6,7 @@ import com.stringintech.phrasewise.core.Pitch;
 import com.stringintech.phrasewise.core.Spelling;
 
 public class LilypondNotationHelper {
-    public static String midiPitchToLilyPond(int midiPitch, Spelling tonic) {
-        Key key = new Key(tonic);
+    public static String midiPitchToLilyPond(int midiPitch, Key key) {
         Pitch pitch = key.newPitch(midiPitch);
         return spellingToLilyPond(pitch.getSpelling()) +
                 getOctaveMarks(pitch.getOctave());

@@ -1,11 +1,20 @@
 package com.stringintech.phrasewise.core;
 
-//TODO minor major how?
 public class Key {
     private final Spelling tonic;
+    private final Mode mode;
+    private final boolean useSharpNotes;
 
-    public Key(Spelling tonic) {
+    public Key(Spelling tonic, Mode mode) {
         this.tonic = tonic;
+        this.mode = mode;
+        this.useSharpNotes = mode == Mode.MINOR ?
+                isSharpMinorKey(tonic) :
+                isSharpMajorKey(tonic);
+    }
+
+    public enum Mode {
+        MAJOR, MINOR
     }
 
     public Pitch newPitch(int midiPitch) {
@@ -15,34 +24,23 @@ public class Key {
         return new Pitch(spelling, octave);
     }
 
-    private Spelling newSpelling(int normalizedMidiPitch) {
-        if (normalizedMidiPitch < 0 || normalizedMidiPitch > 11) { //TODO assertion
-            throw new IllegalArgumentException("Normalized midi pitch must be between 0 and 11");
-        }
-        return useSharpNotes() ?
-                SHARP_SPELLINGS[normalizedMidiPitch] :
-                FLAT_SPELLINGS[normalizedMidiPitch];
-    }
-
-    private boolean useSharpNotes() {
-        for (Spelling sharpKey : KEYS_WITH_SHARP_SPELLINGS) { //TODO map?
-            if (sharpKey.equals(tonic)) return true;
-        }
-        return false;
-    }
-
-    public Spelling getTonic() {
-        return tonic;
-    }
-
-    static final Spelling[] KEYS_WITH_SHARP_SPELLINGS = {
+    private static final Spelling[] MAJOR_SHARP_KEYS = {
+            Spelling.natural(NoteName.C),
             Spelling.natural(NoteName.G),
             Spelling.natural(NoteName.D),
             Spelling.natural(NoteName.A),
             Spelling.natural(NoteName.E),
             Spelling.natural(NoteName.B),
             Spelling.sharp(NoteName.F),
-            Spelling.sharp(NoteName.C)
+    };
+
+    private static final Spelling[] MINOR_SHARP_KEYS = {
+            Spelling.natural(NoteName.A),
+            Spelling.natural(NoteName.E),
+            Spelling.natural(NoteName.B),
+            Spelling.sharp(NoteName.F),
+            Spelling.sharp(NoteName.C),
+            Spelling.sharp(NoteName.G),
     };
 
     static final Spelling[] SHARP_SPELLINGS = {
@@ -74,4 +72,35 @@ public class Key {
             Spelling.flat(NoteName.B),
             Spelling.natural(NoteName.B)
     };
+
+    private static boolean isSharpMajorKey(Spelling tonic) {
+        for (Spelling sharpKey : MAJOR_SHARP_KEYS) {
+            if (sharpKey.equals(tonic)) return true;
+        }
+        return false;
+    }
+
+    private static boolean isSharpMinorKey(Spelling tonic) {
+        for (Spelling sharpKey : MINOR_SHARP_KEYS) {
+            if (sharpKey.equals(tonic)) return true;
+        }
+        return false;
+    }
+
+    private Spelling newSpelling(int normalizedMidiPitch) {
+        if (normalizedMidiPitch < 0 || normalizedMidiPitch > 11) { //TODO assertion
+            throw new IllegalArgumentException("Normalized midi pitch must be between 0 and 11");
+        }
+        return this.useSharpNotes ?
+                SHARP_SPELLINGS[normalizedMidiPitch] :
+                FLAT_SPELLINGS[normalizedMidiPitch];
+    }
+
+    public Spelling getTonic() {
+        return tonic;
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
 }
