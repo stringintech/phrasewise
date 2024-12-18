@@ -2,10 +2,9 @@ package com.stringintech.phrasewise;
 
 import com.stringintech.phrasewise.core.Key;
 import com.stringintech.phrasewise.core.Spelling;
-import com.stringintech.phrasewise.legacy.model.MidiPiece;
 import com.stringintech.phrasewise.legacy.util.LilyPondHelper;
-import com.stringintech.phrasewise.legacy.util.NoteSymbol;
 import com.stringintech.phrasewise.midi.MidiNote;
+import com.stringintech.phrasewise.midi.MonophonicMidiSequence;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
+import javax.sound.midi.Track;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -34,11 +34,16 @@ public class PhrasewiseApplication {
             String command = args[0];
             String midiPath = args[1];
             String keySymbol = args[2];
-            Spelling tonic = NoteSymbol.toSpelling(keySymbol);
+            Spelling tonic = Spelling.fromSymbol(keySymbol);
             Key key = new Key(tonic, Key.Mode.MINOR);
 
             Sequence sequence = MidiSystem.getSequence(Path.of(midiPath).toFile());
-            MidiPiece piece = new MidiPiece(sequence);
+            Track[] tracks = sequence.getTracks();
+            if (tracks.length < 2) {
+                throw new IllegalArgumentException("MIDI file must have at least 2 tracks");
+            }
+            Track mainTrack = tracks[1];
+            MonophonicMidiSequence piece = new MonophonicMidiSequence(mainTrack, sequence.getResolution());
 
             try {
                 switch (command) {
@@ -57,15 +62,15 @@ public class PhrasewiseApplication {
         };
     }
 
-    private void handleFindSequence(MidiPiece piece, Key key, String[] noteArgs) {
+    private void handleFindSequence(MonophonicMidiSequence piece, Key key, String[] noteArgs) {
         if (noteArgs.length < 1) {
             System.err.println("Error: No notes provided for sequence search");
             printUsage();
             return;
         }
 
-        List<Spelling> searchSpellings = NoteSymbol.spellingsFromSymbols(Arrays.asList(noteArgs));
-        MidiPiece.NoteSequenceMatch match = piece.findNoteSequence(searchSpellings, key, 0);
+        List<Spelling> searchSpellings = Spelling.listFromSymbols(Arrays.asList(noteArgs));
+        MonophonicMidiSequence.NoteSequenceMatch match = piece.findNoteSequence(searchSpellings, 0);
 
         if (match == null) {
             System.out.println("No matching sequence found");
@@ -74,7 +79,7 @@ public class PhrasewiseApplication {
         }
     }
 
-    private void handleFindPhrase(MidiPiece piece, Key key, String[] noteArgs) {
+    private void handleFindPhrase(MonophonicMidiSequence piece, Key key, String[] noteArgs) {
         if (noteArgs.length < 2) {
             System.err.println("Error: Both start and end sequences must be provided");
             printUsage();
@@ -97,10 +102,10 @@ public class PhrasewiseApplication {
             return;
         }
 
-        List<Spelling> startSpellings = NoteSymbol.spellingsFromSymbols(startSeqArgs);
-        List<Spelling> endSpellings = NoteSymbol.spellingsFromSymbols(endSeqArgs);
+        List<Spelling> startSpellings = Spelling.listFromSymbols(startSeqArgs);
+        List<Spelling> endSpellings = Spelling.listFromSymbols(endSeqArgs);
 
-        List<MidiNote> phrase = piece.findPhraseBetweenSequences(startSpellings, endSpellings, key);
+        List<MidiNote> phrase = piece.findPhraseBetweenSequences(startSpellings, endSpellings);
 
         if (phrase.isEmpty()) {
             System.out.println("No matching phrase found");
